@@ -1,0 +1,292 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini Chatbot</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f5f9;
+      color: #202638;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 850px;
+      height: 85vh;
+      min-height: 500px;
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 20px 24px;
+      background: #18243b;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #5268e8;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      color: #cbd5e1;
+      font-size: 12px;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .welcome {
+      text-align: center;
+      margin: auto;
+      max-width: 400px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+
+    .welcome h2 {
+      color: #202638;
+      margin-bottom: 8px;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 13px 16px;
+      border-radius: 15px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .user {
+      align-self: flex-end;
+      background: #5268e8;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background: #eef1f7;
+      color: #202638;
+      border-bottom-left-radius: 4px;
+    }
+
+    .typing {
+      color: #64748b;
+      font-size: 13px;
+      padding: 4px 12px;
+    }
+
+    .input-area {
+      padding: 18px 20px;
+      border-top: 1px solid #e8ebf1;
+      display: flex;
+      gap: 10px;
+    }
+
+    #messageInput {
+      flex: 1;
+      border: 1px solid #d8deea;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    #messageInput:focus {
+      border-color: #5268e8;
+    }
+
+    #sendButton {
+      border: none;
+      border-radius: 12px;
+      padding: 0 22px;
+      background: #5268e8;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    #sendButton:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .footer {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 11px;
+      padding: 0 12px 12px;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 0;
+      }
+
+      .chat-container {
+        height: 100vh;
+        min-height: 100vh;
+        border-radius: 0;
+      }
+
+      .message {
+        max-width: 90%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="chat-container">
+ <header class="header">
+  <div class="avatar">✦</div>
+
+  <div class="header-info">
+    <h1>Gemini Assistant</h1>
+    <p>Powered by Gemini 3.5 Flash-Lite</p>
+  </div>
+
+  <button id="historyButton" type="button">History</button>
+  <button id="newChatButton" type="button">+ New Chat</button>
+</header>
+
+    <section class="messages" id="messages" aria-live="polite">
+      <div class="welcome" id="welcome">
+        <h2>Hello! 👋</h2>
+        <p>I'm your AI assistant. Ask me a question and let's get started.</p>
+      </div>
+    </section>
+
+    <form class="input-area" id="chatForm">
+      <input
+        id="messageInput"
+        type="text"
+        placeholder="Type your message..."
+        autocomplete="off"
+        maxlength="4000"
+        required
+      >
+      <button id="sendButton" type="submit">Send</button>
+    </form>
+
+    <div class="footer">
+      AI responses may not always be accurate. Please verify important information.
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById("chatForm");
+    const input = document.getElementById("messageInput");
+    const messages = document.getElementById("messages");
+    const sendButton = document.getElementById("sendButton");
+    const welcome = document.getElementById("welcome");
+
+    function addMessage(text, sender) {
+      const message = document.createElement("div");
+      message.className = `message ${sender}`;
+      message.textContent = text;
+      messages.appendChild(message);
+      messages.scrollTop = messages.scrollHeight;
+      return message;
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const message = input.value.trim();
+      if (!message) return;
+
+      welcome?.remove();
+      addMessage(message, "user");
+
+      input.value = "";
+      input.disabled = true;
+      sendButton.disabled = true;
+
+      const typing = addMessage("Gemini is thinking...", "typing");
+
+      try {
+        const response = await fetch("/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message })
+        });
+
+        const data = await response.json();
+
+        typing.remove();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Something went wrong.");
+        }
+
+        addMessage(data.reply || "Gemini returned an empty response.", "bot");
+
+      } catch (error) {
+        typing.remove();
+        addMessage("Sorry, I couldn't connect: " + error.message, "bot");
+      } finally {
+        input.disabled = false;
+        sendButton.disabled = false;
+        input.focus();
+      }
+    });
+    const newChatButton = document.getElementById("newChatButton");
+
+newChatButton.addEventListener("click", () => {
+  messages.innerHTML = `
+    <div class="welcome" id="welcome">
+      <h2>Hello! 👋</h2>
+      <p>I'm your AI assistant. Ask me a question and let's get started.</p>
+    </div>
+  `;
+
+  input.value = "";
+  input.focus();
+});
+  </script>
+</body>
+</html>

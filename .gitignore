@@ -1,0 +1,25 @@
+
+# Dependencies
+node_modules/
+lambda-package/node_modules/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Terraform working files and sensitive state
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfvars
+terraform/*.tfvars.json
+terraform/crash.log
+terraform/crash.*.log
+
+# Deployment packages
+lambda-function.zip
+
+# Operating system files
+.DS_Store
+Thumbs.db
