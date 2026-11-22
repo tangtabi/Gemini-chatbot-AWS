@@ -1,4 +1,4 @@
-# Gemini Chatbot on AWS
+# Gemini Chatbot on AWS (ENTERPRISE AI CHATBOT)
 
 A browser-based AI chatbot powered by Google Gemini and deployed on Amazon Web Services (AWS). The project demonstrates cloud infrastructure deployment, serverless application development, infrastructure as code, and security implementation.
 
